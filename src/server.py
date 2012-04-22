@@ -5,19 +5,22 @@ Created on Apr 20, 2012
 '''
 
 import socket
+from message import Message
 
 class Server:
     '''
     Server is a parent class that defines methods to send and receive data
      will include UdpServer, WebSocketServer, etc...
     '''
+    def __init__(self, ip, port):
+        self.ip = ip
+        self.port = port
     pass
 
 class UdpServer(Server):
 
     def __init__(self, ip, port):
-        self.ip = ip
-        self.port = port
+        Server.__init__(self, ip, port)
         self.sock = socket.socket( socket.AF_INET, # Internet
                       socket.SOCK_DGRAM ) # UDP
         self.sock.bind( (ip,port) )
@@ -29,15 +32,19 @@ class UdpServer(Server):
         data, addr = self.sock.recvfrom( 1024 )
         #prints a string but crashes on OSC msg
         #print("received: " + data.decode("utf-8"))
-    
-        if data[0] == 123 and data[-1] == 125: #check for '{' and '}'
-            return data
+        m = Message()
+        m.parse(data)
+        return m
         
-    def sendData(self, ip, data):
-        self.sock.sendto( bytes(data,"utf-8") + b"\n", 0, (ip, 4000) )
+    def sendData(self, ip, message):
+        self.sock.sendto( bytes(str(message),"utf-8") + b"\n", 0, (ip, 4000) )
     
+    
+##################    
+# self-test code #
+##################
+
 if __name__ == '__main__':
-    # self-test code
     udp = UdpServer('192.168.1.7', 3000)
     print(udp)
     

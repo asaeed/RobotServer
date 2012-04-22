@@ -5,6 +5,8 @@ Created on Apr 20, 2012
 '''
 
 from server import UdpServer
+from message import Message
+import globals
 
 UDP_IP="192.168.1.7"
 UDP_PORT=3000
@@ -13,13 +15,19 @@ server = UdpServer(UDP_IP,UDP_PORT)
 
 while True:
     
-    dataRaw = server.receiveData()
+    messageIn = server.receiveData()
     
-    if len(dataRaw) > 0:
-        data = eval(dataRaw)
-        ip = data["ip"]
-        heading = data["heading"]
-        s = '{"neck":' + str(heading / 2) + "}" 
-        print(dataRaw + b"  ---->  " + bytes(s,"utf-8"))
-        server.sendData(ip, s)
-        #time.sleep( .2 )
+    if (messageIn):
+        ip = messageIn.ip
+        heading = messageIn.heading
+        messageOut = Message()
+        #messageOut.neck = heading / 2
+        if heading <= 180:
+            messageOut.neck = globals.mapNum(heading, 0, 180, 180, 0)
+        else:
+            messageOut.neck = globals.mapNum(heading, 180, 360, 180, 0)
+        print(str(messageIn) + "  ---->  " + str(messageOut))
+        server.sendData(ip, messageOut)
+        
+        
+        
